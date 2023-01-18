@@ -157,20 +157,15 @@ foreach ($proxies as $proxy){
 echo $line1."\r\n";
 echo $line2."\r\n";
 
-function fillLine($url)
-{
+foreach (array_merge($forum, $api) as $url){
     $line = "| ".str_pad($url, 17)." | ";
-    foreach ($GLOBALS['proxies'] as $proxy){
+    foreach ($proxies as $proxy){
         $nullsafe = getNullSafeProxy($proxy);
-        $code = $GLOBALS['connectivity'][$url][$nullsafe];
+        $code = $connectivity[$url][$nullsafe];
         $emoji = ($code < 300 && $code > 0) ? "✅" : "❌";
         $line = $line.str_pad($emoji." ".$code, 12)." | ";
     }
-    return $line;
-}
-
-foreach (array_merge($forum, $api) as $url){
-    echo fillLine($url)."\r\n";
+    echo $line."\r\n";
 }
 
 echo "```\r\n";
