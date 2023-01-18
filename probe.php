@@ -25,6 +25,15 @@ foreach ($forum as $addr){
     $connectivity[$addr] = array();
 }
 
+function getWebTloVersion(){
+    $version_json_path = dirname(__FILE__) . '/version.json';
+    if (!file_exists($version_json_path)) {
+        return "version file not found";
+    }
+    $version_json = (object) json_decode(file_get_contents($version_json_path), true);
+    return $version_json->version;
+}
+
 function getNullSafeProxy($proxy, $short = false)
 {
     $replaceTemplate = $short ? "gateway." : "";
@@ -75,6 +84,8 @@ checkAccess($proxies, $forum, "https://%s/forum/info.php?show=copyright_holders"
 checkAccess($proxies, $api, "https://%s/v1/get_client_ip");
 
 $probe = new stdClass();
+
+$probe->configuration = getWebTloVersion();
 
 $probe->server = new stdClass();
 $probe->server->gateway = $_SERVER['GATEWAY_INTERFACE'];
