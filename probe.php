@@ -20,6 +20,17 @@ $api = [
     'api.rutracker.net'
 ];
 
+$connectivity = array();
+foreach ($forum as $addr){
+    $connectivity[$addr] = array();
+}
+
+function getNullSafeProxy($proxy, $short = false)
+{
+    $replaceTemplate = $short ? "gateway." : "";
+    return $proxy==null ? "no proxy" : str_replace($replaceTemplate, "", $proxy[0]);
+}
+
 function getUrl($url, $proxy)
 {
     try {
@@ -50,22 +61,20 @@ function getUrl($url, $proxy)
 
 function checkAccess($proxies, $hostnames, $tpl)
 {
-    $res = [];
     foreach ($hostnames as $hostname) {
         $url = sprintf($tpl, $hostname);
         foreach ($proxies as $proxy) {
-            $res[] = ['hostname'=> $hostname, 'proxy' => $proxy, 'code' => getUrl($url, $proxy)];
+            $code = getUrl($url, $proxy);
+            $nullsafe = getNullSafeProxy($proxy);
+            $GLOBALS['connectivity'][$hostname][$nullsafe] = $code;
         }
     }
-    return $res;
 }
 
-$probe = new stdClass();
+checkAccess($proxies, $forum, "https://%s/forum/info.php?show=copyright_holders");
+checkAccess($proxies, $api, "https://%s/v1/get_client_ip");
 
-$probe->configuration = new stdClass();
-$probe->connectivity = new stdClass();
-$probe->connectivity->forum = checkAccess($proxies, $forum, "https://%s/forum/info.php?show=copyright_holders");
-$probe->connectivity->api = checkAccess($proxies, $api, "https://%s/v1/get_client_ip");
+$probe = new stdClass();
 
 $probe->server = new stdClass();
 $probe->server->gateway = $_SERVER['GATEWAY_INTERFACE'];
@@ -77,7 +86,6 @@ $probe->php->memory_limit = ini_get('memory_limit');
 $probe->php->max_execution_time = ini_get('max_execution_time');
 $probe->php->max_input_time = ini_get('max_input_time');
 $probe->php->max_input_vars = ini_get('max_input_vars');
-$probe->php->extensions = get_loaded_extensions();
 ?>
 <!DOCTYPE html>
 <html class="ui-widget-content" lang="en">
@@ -126,7 +134,38 @@ $probe->php->extensions = get_loaded_extensions();
 <main>
     <h3>Configuration</h3>
 <pre id="result">
-<?php echo json_encode($probe, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES); ?>
+<?php 
+
+$line1 = "|                   |";
+$line2 = "| ----------------- |";
+foreach ($proxies as $proxy){
+    $nullsafe = getNullSafeProxy($proxy, true);
+    $line1 = $line1." ".str_pad($nullsafe, 12)." |";
+    $line2 = $line2." ".str_pad("-", 12)." |";
+}
+echo $line1."\r\n";
+echo $line2."\r\n";
+
+function fillLine($url)
+{
+    $line = "| ".str_pad($url, 17)." | ";
+    foreach ($GLOBALS['proxies'] as $proxy){
+        $nullsafe = getNullSafeProxy($proxy);
+        $code = $GLOBALS['connectivity'][$url][$nullsafe];
+        $emoji = ($code < 300 && $code > 0) ? "✅" : "❌";
+        $line = $line.str_pad($emoji." ".$code, 12)." | ";
+    }
+    return $line;
+}
+
+foreach (array_merge($forum, $api) as $url){
+    echo fillLine($url)."\r\n";
+}
+
+echo "```\r\n";
+echo json_encode($probe, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+echo "\r\n```";
+?>
 </pre>
 </main>
 <footer>
