@@ -34,6 +34,15 @@ function getWebTloVersion(){
     return $version_json->version;
 }
 
+function getConfig(){
+    $config_path = dirname(__FILE__) . '/data/config.ini';
+    if (!file_exists($config_path)) {
+        return array();
+    }
+    $config = parse_ini_file($config_path);
+    return $config;
+}
+
 function getNullSafeProxy($proxy, $short = false)
 {
     $replaceTemplate = $short ? "gateway." : "";
@@ -83,13 +92,27 @@ function checkAccess($proxies, $hostnames, $tpl)
 checkAccess($proxies, $forum, "https://%s/forum/info.php?show=copyright_holders");
 checkAccess($proxies, $api, "https://%s/v1/get_client_ip");
 
+$config = getConfig();
+
 $probe = new stdClass();
 
-$probe->configuration = getWebTloVersion();
+$probe->version = getWebTloVersion();
 
-$probe->server = new stdClass();
-$probe->server->gateway = $_SERVER['GATEWAY_INTERFACE'];
-$probe->server->software = $_SERVER['SERVER_SOFTWARE'];
+$probe->config = new stdClass();
+$probe->config->forum_url = $config['forum_url'] == 'custom' ? $config['forum_url_custom'] : $config['forum_url'];
+$probe->config->forum_ssl = $config['forum_ssl'];
+$probe->config->api_url = $config['api_url'] == 'custom' ? $config['api_url_custom'] : $config['api_url'];
+$probe->config->api_ssl = $config['api_ssl'];
+
+$probe->config->proxy = new stdClass();
+if($config['activate_forum'] == 1 || $config['activate_api'] == 1){
+    $probe->config->proxy->url = $config['hostname'].":".$config['port'];
+    $probe->config->proxy->type = $config['type'];
+}
+$probe->config->proxy->activate_forum = $config['activate_forum'];
+$probe->config->proxy->activate_api = $config['activate_api'];
+
+$probe->server = $_SERVER['SERVER_SOFTWARE'];
 
 $probe->php = new stdClass();
 $probe->php->version = phpversion();
@@ -168,9 +191,7 @@ foreach (array_merge($forum, $api) as $url){
     echo $line."\r\n";
 }
 
-echo "```\r\n";
-echo json_encode($probe, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-echo "\r\n```";
+echo "\r\n".json_encode($probe, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)."\r\n";
 ?>
 </pre>
 </main>
