@@ -62,8 +62,8 @@ function getUrl($url, $proxy)
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_MAXREDIRS => 2,
             CURLOPT_USERAGENT => "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36",
-            CURLOPT_CONNECTTIMEOUT => 5,
-            CURLOPT_TIMEOUT => 5,
+            CURLOPT_CONNECTTIMEOUT => 10,
+            CURLOPT_TIMEOUT => 10,
             CURLOPT_URL => $url,
         ]);
         if (null !== $proxy) {
@@ -168,7 +168,7 @@ $probe->php->max_input_vars = ini_get('max_input_vars');
 <main>
     <h3>Configuration</h3>
 <pre id="result">
-<?php 
+<?php
 
 $line1 = "|                   |";
 $line2 = "| ----------------- |";
