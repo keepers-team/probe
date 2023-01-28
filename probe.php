@@ -38,7 +38,7 @@ function getConfig(){
     if (!file_exists($config_path)) {
         return array();
     }
-    $config = parse_ini_file($config_path);
+    $config = parse_ini_file($config_path, true);
     return $config;
 }
 
@@ -98,18 +98,18 @@ $probe = new stdClass();
 $probe->version = getWebTloVersion();
 
 $probe->config = new stdClass();
-$probe->config->forum_url = $config['forum_url'] == 'custom' ? $config['forum_url_custom'] : $config['forum_url'];
-$probe->config->forum_ssl = $config['forum_ssl'];
-$probe->config->api_url = $config['api_url'] == 'custom' ? $config['api_url_custom'] : $config['api_url'];
-$probe->config->api_ssl = $config['api_ssl'];
+$probe->config->forum_url = $config['torrent-tracker']['forum_url'] == 'custom' ? $config['torrent-tracker']['forum_url_custom'] : $config['torrent-tracker']['forum_url'];
+$probe->config->forum_ssl = $config['torrent-tracker']['forum_ssl'];
+$probe->config->api_url = $config['torrent-tracker']['api_url'] == 'custom' ? $config['torrent-tracker']['api_url_custom'] : $config['torrent-tracker']['api_url'];
+$probe->config->api_ssl = $config['torrent-tracker']['api_ssl'];
 
 $probe->config->proxy = new stdClass();
-if($config['activate_forum'] == 1 || $config['activate_api'] == 1){
-    $probe->config->proxy->url = $config['hostname'].":".$config['port'];
-    $probe->config->proxy->type = $config['type'];
+if($config['proxy']['activate_forum'] == 1 || $config['proxy']['activate_api'] == 1){
+    $probe->config->proxy->url = $config['proxy']['hostname'].":".$config['proxy']['port'];
+    $probe->config->proxy->type = $config['proxy']['type'];
 }
-$probe->config->proxy->activate_forum = $config['activate_forum'];
-$probe->config->proxy->activate_api = $config['activate_api'];
+$probe->config->proxy->activate_forum = $config['proxy']['activate_forum'];
+$probe->config->proxy->activate_api = $config['proxy']['activate_api'];
 
 $probe->server = $_SERVER['SERVER_SOFTWARE'];
 
