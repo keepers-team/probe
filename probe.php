@@ -16,8 +16,7 @@ $forum = [
 ];
 
 $api = [
-    'api.rutracker.cc',
-    'api.rutracker.net'
+    'api.rutracker.cc'
 ];
 
 $connectivity = array();
